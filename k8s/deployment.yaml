@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: petclinic
-          image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:0f57d06abf992e98547133e6e2d840c4cd44a6cc
+          image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:afcbbceebb1062302da310ba4d53dca4d282eaf0
           ports:
             - containerPort: 8080
           resources:
