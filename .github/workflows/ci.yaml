@@ -7,9 +7,28 @@ on:
   push:
     branches:
       - main  # main 브랜치에 푸시가 발생하면 실행
+    paths:
+      - 'src/**'
+      - 'k8s/**'
+      - 'pom.xml'
+      - 'Dockerfile'
+      - '.github/workflows/**'
+
   pull_request:
     branches:
       - main  # main 브랜치로의 풀 리퀘스트가 발생하면 실행
+    paths:
+      - 'src/**'
+      - 'k8s/**'
+      - 'pom.xml'
+      - 'Dockerfile'
+      - '.github/workflows/**'
+
+env:
+  AWS_REGION: eu-central-1
+  ECR_REGISTRY: 514090833954.dkr.ecr.eu-central-1.amazonaws.com
+  ECR_REPOSITORY: user15_petclinic-repo
+  IMAGE_TAG: ${{ github.sha }}
 
 # 빌드 작업 정의  
 jobs:
@@ -51,7 +70,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-central-1
+        aws-region: ${{ env.AWS_REGION }}
     
     # Amazon ECR(Elastic Container Registry)에 로그인합니다.
     - name: Login to Amazon ECR
@@ -65,17 +84,20 @@ jobs:
     # 이 이미지가 빌드되고, 지정된 ECR 리포지토리에 푸시됩니다.
     - name: Build, tag, and push image to Amazon ECR
       env:
-        ECR_REGISTRY: 514090833954.dkr.ecr.eu-central-1.amazonaws.com # 수정 []포함 내용 삭제후 생성된  registry 입력
-        ECR_REPOSITORY: user15_petclinic-repo
-        IMAGE_TAG: ${{ github.sha }}
+        ECR_REGISTRY: ${{ env.ECR_REGISTRY }} # 수정 []포함 내용 삭제후 생성된  registry 입력
+        ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+        # IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}" .
+        docker push "$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}"
 
     # Kubernetes 배포 YAML 파일(k8s/deployment.yaml)의 image 태그를 새로 빌드되는 이미지 태그로 업데이트합니다.
     - name: Update Deployment YAML
+      env:
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
       run: |
-        sed -i 's|image: .*|image: 514090833954.dkr.ecr.eu-central-1.amazonaws.com/user15_petclinic-repo:${{ github.sha }}|' k8s/deployment.yaml
+        sed -i 's|image: .*|image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}|' k8s/deployment.yaml
 
     # 변경사항이 있으면 커밋하고 푸시합니다.
     # 변경된 k8s/deployment.yaml파일을 git에 push
