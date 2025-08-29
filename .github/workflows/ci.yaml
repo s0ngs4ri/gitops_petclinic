@@ -65,8 +65,8 @@ jobs:
     # 이 이미지가 빌드되고, 지정된 ECR 리포지토리에 푸시됩니다.
     - name: Build, tag, and push image to Amazon ECR
       env:
-        ECR_REGISTRY: 514090833954.dkr.ecr.eu-central-1.amazonaws.com/user15_petclinic-repo # 수정 []포함 내용 삭제후 생성된  registry 입력
-	      # ECR_REPOSITORY: user15_petclinic-repo
+        ECR_REGISTRY: 514090833954.dkr.ecr.eu-central-1.amazonaws.com # 수정 []포함 내용 삭제후 생성된  registry 입력
+        ECR_REPOSITORY: user15_petclinic-repo
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
