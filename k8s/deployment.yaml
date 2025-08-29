@@ -4,9 +4,17 @@ metadata:
   name: petclinic
 spec:
   replicas: 2
+  revisionHistoryLimit: 3  # 과거 ReplicaSet 보관 개수
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1         # 배포 중 일시적으로 추가 허용할 파드 수(또는 비율)
+      maxUnavailable: 0   # 배포 중 가용 파드가 0개 줄지 않도록
   selector:
     matchLabels:
       app: petclinic
+  minReadySeconds: 10 # 새 파드가 'Available'로 간주되기 전 최소 준비 시간
+  progressDeadlineSeconds: 600 # 롤아웃이 지연/멈춤으로 판단하는 타임아웃
   template:
     metadata:
       labels:
@@ -14,7 +22,7 @@ spec:
     spec:
       containers:
         - name: petclinic
-          image: 514090833954.dkr.ecr.eu-central-1.amazonaws.com/user15_petclinic-repo:2b59fb348de2c036321174c3212326e09490337a
+          image: 514090833954.dkr.ecr.eu-central-1.amazonaws.com/user15_petclinic-repo:16a0a9ccf6cf30cc5a3a4ee38e94ffbf144ea254
           ports:
             - containerPort: 8080
           resources:
